@@ -1,85 +1,57 @@
-# Shocker plugin for OSC-DreamChatbox (OpenShock + PiShock)
+# Shocker plugin for OSC-DreamChatbox
 
-Control **OpenShock** and **PiShock** devices from inside OSC-DreamChatbox.
+OpenShock **and** PiShock control, with optional **full chatbox replace** when a shock happens.
 
-**v2.0** – dual backend + OpenShock live “who” via log polling.
-
-## Install
+**Plugin id:** `shocker` → placeholders are `{shocker}`, `{shocker_last}`, …
 
 Repo: https://github.com/ArcticTechy/OSC-DreamChatbox-OpenShock
 
-1. Zip the folder (must contain `plugin.json` + `main.py` at the root of the zip), **or** clone / download this repo.
-2. OSC-DreamChatbox → **Plugins** → install from zip / folder  
-   or drop into  
-   `~/.config/OSC-DreamChatbox/plugins/openshock/` (Linux) /  
-   `%APPDATA%\\OSC-DreamChatbox\\plugins\\openshock\\` (Windows).
-3. Enable the plugin and open its settings.
+## Install
 
-## Setup
+1. Install from this GitHub repo **or** zip the folder so it contains `plugin.json` + `main.py`.
+2. Folder name must match the id: `…/plugins/shocker/`
+3. Enable the plugin and open settings.
 
-### Backend switch
-
-Pick **OpenShock** or **PiShock** at the top of the settings.
-
-### OpenShock
-
-1. Create an API token on [openshock.app](https://openshock.app) → Settings → API Tokens.
-2. Paste into **API Token**.
-3. Press **Refresh**. Shockers are listed; paste a UUID into **Shocker ID** if needed.
-4. Leave **Watch live logs (show who)** enabled if you want website / other-app actions to appear in the chatbox.
-
-### PiShock
-
-1. Username + API key from [pishock.com/#/account](https://pishock.com/#/account).
-2. Share code from the control page (Share button).
-3. Press **Refresh** to verify, then use the action buttons.
-
-## Actions
-
-| Button   | OpenShock | PiShock        |
-|----------|-----------|----------------|
-| Vibrate  | ✓         | ✓              |
-| Shock    | ✓         | ✓              |
-| Sound    | ✓         | Beep           |
-| Stop     | ✓         | (not available)|
-
-Duration:
-- OpenShock → milliseconds (`Duration (OpenShock)`)
-- PiShock → whole seconds 1–15 (`Duration (PiShock)`)
+If you had v1/v2 under the old `openshock` id, remove that folder and install this one as `shocker`.
 
 ## Placeholders
 
-| Placeholder             | Meaning |
-|-------------------------|---------|
-| `{openshock}`           | Short status line (prefix + state + last action) |
-| `{openshock_status}`    | Connected / Offline / Error / … |
-| `{openshock_last}`      | Last command (includes `by Name` when live) |
-| `{openshock_intensity}` | Intensity of the last command |
-| `{openshock_shocker}`   | Selected shocker name / short ID |
-| `{openshock_by}`        | Who triggered the last seen action (OpenShock live) |
+| Placeholder | Meaning |
+|-------------|---------|
+| `{shocker}` | Idle status line, **or** the event line while an event is active |
+| `{shocker_status}` | Connected / Offline / Error |
+| `{shocker_last}` | Last command (includes `by Name` when live) |
+| `{shocker_type}` | Shock / Vibrate / Sound / Stop / Beep |
+| `{shocker_intensity}` | Intensity |
+| `{shocker_duration}` | Duration text (`1s`, `1500ms`, …) |
+| `{shocker_device}` | Selected shocker name |
+| `{shocker_by}` | Who triggered it (`you` or a username) |
+| `{shocker_event}` | Event line only while showing, else empty |
 
-### Live “who” (OpenShock only)
+## Live event (replace chatbox)
 
-When **Watch live logs** is on, the plugin polls  
-`GET /1/shockers/{id}/logs` every few seconds.
+Settings → **Live event (replace chatbox)**:
 
-If someone (or the website / another app / share link) sends a command, the chatbox updates to something like:
+1. Turn on **Replace chatbox on action**
+2. Edit **Event template**, e.g.  
+   `⚡ {shocker_type} {shocker_intensity}% {shocker_duration} by {shocker_by}`
+3. Set **Show for** (seconds)
 
-```text
-⚡ OpenShock · 1 shocker(s) · Shock 40% 1500ms by Alice
-```
+When you press a button (or OpenShock live log sees someone else), the plugin:
 
-Your own button presses are labelled `by you`.
+- builds the event line from the template  
+- calls `api.refresh()`  
+- uses **`on_text()`** so the **entire** VRChat chatbox becomes that line for a few seconds  
+- then returns to your normal AIO / status text
 
-PiShock does not get this feed (classic HTTP API has no push/poll of third-party actions without a persistent WebSocket).
+## Backends
 
-## Notes
+### OpenShock
+API token + shocker UUID. Optional **Watch live logs** polls who triggered actions on the website.
 
-- All HTTP calls run on background threads – the chatbox UI never blocks.
-- OpenShock default API: `https://api.openshock.app`
-- PiShock operate: `https://do.pishock.com/api/apioperate`
-- OpenShock requires a non-empty User-Agent (plugin sends one by default).
+### PiShock
+Username + API key + share code. Duration in whole seconds (1–15).
 
 ## Licence
 
-GPL-3.0-or-later (same as OSC-DreamChatbox).
+GPL-3.0-or-later
