@@ -1,7 +1,7 @@
 """Shocker plugin for OSC-DreamChatbox – OpenShock + PiShock.
 
 Placeholders: {shocker}, {shocker_last}, {shocker_by}, …
-Optional live event (v2.2.0): temporarily replaces the whole chatbox via on_text().
+Optional live event: temporarily replaces the whole chatbox via on_text().
 """
 
 # SPDX-License-Identifier: GPL-3.0-or-later
