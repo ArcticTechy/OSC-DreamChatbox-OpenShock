@@ -1,7 +1,7 @@
 {
   "name": "Shocker (OpenShock + PiShock)",
   "id": "shocker",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "author": "community",
   "description": "Control OpenShock and PiShock from OSC-DreamChatbox. Live who on OpenShock. Optional event that temporarily replaces the whole chatbox when a shock happens. Duration shown as 0.3 s. Idle last-action timeout.",
   "about": {

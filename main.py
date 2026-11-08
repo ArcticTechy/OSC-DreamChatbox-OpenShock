@@ -59,6 +59,7 @@ def _set_status(text: str, error: str = "") -> None:
             _api.set("status_label", text if not error else f"{text}: {error}")
         except Exception:
             pass
+    _refresh()
 
 
 def _backend() -> str:
@@ -227,8 +228,10 @@ def _os_ua() -> str:
 
 
 def _os_headers() -> dict:
+    token = _os_token()
     return {
-        "Open-Shock-Token": _os_token(),
+        "Open-Shock-Token": token,
+        "OpenShockToken": token,          # some older clients / proxies
         "User-Agent": _os_ua(),
         "Content-Type": "application/json",
         "Accept": "application/json",
@@ -237,6 +240,26 @@ def _os_headers() -> dict:
 
 def _os_shocker_id() -> str:
     return str(_api.get("os_shocker_id") or "").strip() if _api else ""
+
+
+def _os_ensure_shocker() -> str:
+    """Return a shocker id, auto-selecting the first known one if none is set."""
+    sid = _os_shocker_id()
+    if sid:
+        return sid
+    with _lock:
+        items = list(_state.get("shockers") or [])
+    if items and _api is not None and _api.supports("api.set"):
+        try:
+            first = items[0]["id"]
+            _api.set("os_shocker_id", first)
+            with _lock:
+                _state["shocker_id"] = first
+                _state["device"] = items[0].get("name") or first[:8]
+            return first
+        except Exception:
+            pass
+    return ""
 
 
 def _os_fetch_shockers() -> None:
@@ -294,10 +317,13 @@ def _os_fetch_shockers() -> None:
 def _os_send(control_type: str, intensity: int, duration_ms: int) -> None:
     if not _os_token():
         _set_status("Error", "no OpenShock token")
+        _refresh()
         return
-    sid = _os_shocker_id()
+
+    sid = _os_ensure_shocker()
     if not sid and control_type != "Stop":
-        _set_status("Error", "no shocker selected")
+        _set_status("Error", "no shocker selected – press Refresh first")
+        _refresh()
         return
 
     intensity = max(0, min(100, int(intensity)))
@@ -313,11 +339,17 @@ def _os_send(control_type: str, intensity: int, duration_ms: int) -> None:
         "customName": "OSC-DreamChatbox",
     }
     try:
-        code, _ = _http_json("POST", f"{_os_base()}/2/shockers/control", _os_headers(), body=body)
+        code, resp = _http_json(
+            "POST", f"{_os_base()}/2/shockers/control", _os_headers(), body=body
+        )
+        # Some servers return 204 with empty body
+        if code not in (200, 204):
+            raise RuntimeError(f"HTTP {code}: {resp!s}"[:200])
+
         dur = "" if control_type == "Stop" else _fmt_duration_ms(duration_ms)
         inten = None if control_type in ("Stop", "Sound") else intensity
-        if _state["status"].startswith("Error") or _state["status"] == "not configured":
-            with _lock:
+        with _lock:
+            if _state["status"].startswith("Error") or _state["status"] == "not configured":
                 _state["status"] = "OpenShock · Connected"
         _record_action(control_type, inten, dur, by="you", fire_event=True)
         if _api and _api.supports("api.set"):
@@ -326,9 +358,12 @@ def _os_send(control_type: str, intensity: int, duration_ms: int) -> None:
             except Exception:
                 pass
         _log(f"OpenShock sent {_state['last']} (HTTP {code})")
+        _refresh()
     except Exception as e:
-        _set_status("Error", str(e))
+        msg = str(e)[:180]
+        _set_status("Error", msg)
         _log(f"OpenShock control failed: {e}")
+        _refresh()
 
 
 def _os_type_name(t: Any) -> str:
@@ -713,9 +748,12 @@ def on_action(key: str) -> str:
         return ""
     control = mapping[key]
     if not _os_token():
-        return "no OpenShock token"
-    if not _os_shocker_id() and control != "Stop":
-        return "select a shocker first"
+        _set_status("Error", "no OpenShock token")
+        return "no OpenShock token – set it and press Refresh"
+    if not _os_ensure_shocker() and control != "Stop":
+        _set_status("Error", "no shocker – press Refresh first")
+        return "press Refresh to load shockers"
+    _set_status(f"sending {control}…")
     _run_bg(_os_send, control, intensity, duration_ms)
     return f"sending {control}…"
 
