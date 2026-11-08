@@ -8,6 +8,9 @@ Repo: https://github.com/ArcticTechy/OSC-DreamChatbox-OpenShock
 
 ## Install
 
+**Clean single-file version (v2.2.0).** Only `plugin.json` + `main.py` are required.
+
+
 1. Install from this GitHub repo **or** zip the folder so it contains `plugin.json` + `main.py`.
 2. Folder name must match the id: `…/plugins/shocker/`
 3. Enable the plugin and open settings.
