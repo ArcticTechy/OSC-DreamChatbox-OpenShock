@@ -1,9 +1,9 @@
 {
   "name": "Shocker (OpenShock + PiShock)",
   "id": "shocker",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "author": "community",
-  "description": "Control OpenShock and PiShock from OSC-DreamChatbox. Live who on OpenShock. Optional event that temporarily replaces the whole chatbox when a shock happens.",
+  "description": "Control OpenShock and PiShock from OSC-DreamChatbox. Live who on OpenShock. Optional event that temporarily replaces the whole chatbox when a shock happens. Duration shown as 0.3 s. Idle last-action timeout.",
   "about": {
     "format": "markdown",
     "text": [
@@ -57,99 +57,44 @@
     "event": "event line while a live event is showing"
   },
   "settings": [
-    {
-      "key": "intro",
-      "type": "label",
-      "label": "Shocker",
-      "text": "OpenShock + PiShock. Set backend, credentials, then Refresh."
-    },
-    {
-      "key": "backend",
-      "type": "choice",
-      "label": "Backend",
-      "default": "openshock",
-      "choices": [
-        {"value": "openshock", "label": "OpenShock (openshock.app)"},
-        {"value": "pishock", "label": "PiShock (pishock.com)"}
-      ]
-    },
-    {
-      "key": "g_openshock",
-      "type": "group",
-      "label": "OpenShock",
-      "open": true,
-      "items": [
-        {"key": "os_token", "type": "text", "label": "API Token", "default": "", "secret": true,
-         "hint": "Open-Shock-Token from openshock.app → Settings → API Tokens"},
-        {"key": "os_base_url", "type": "text", "label": "API Base URL", "default": "https://api.openshock.app",
-         "hint": "Self-host only. No trailing slash."},
-        {"key": "os_user_agent", "type": "text", "label": "User-Agent", "default": "OSC-DreamChatbox-Shocker/2.1"},
-        {"key": "os_shocker_id", "type": "text", "label": "Shocker ID (UUID)", "default": ""},
-        {"key": "os_watch_logs", "type": "bool", "label": "Watch live logs (show who)", "default": true,
-         "hint": "Poll logs so website / other apps show up with the username."},
-        {"key": "os_poll_secs", "type": "int", "label": "Log poll interval", "default": 6, "min": 3, "max": 60, "suffix": " s"}
-      ]
-    },
-    {
-      "key": "g_pishock",
-      "type": "group",
-      "label": "PiShock",
-      "open": false,
-      "items": [
-        {"key": "ps_username", "type": "text", "label": "Username", "default": ""},
-        {"key": "ps_apikey", "type": "text", "label": "API Key", "default": "", "secret": true},
-        {"key": "ps_sharecode", "type": "text", "label": "Share Code", "default": ""},
-        {"key": "ps_log_name", "type": "text", "label": "Log name", "default": "OSC-DreamChatbox"}
-      ]
-    },
-    {
-      "key": "g_event",
-      "type": "group",
-      "label": "Live event (replace chatbox)",
-      "open": true,
-      "items": [
-        {"key": "event_enabled", "type": "bool", "label": "Replace chatbox on action", "default": true},
-        {"key": "event_template", "type": "text", "label": "Event template",
-         "default": "⚡ {shocker_type} {shocker_intensity}% {shocker_duration} by {shocker_by}"},
-        {"key": "event_seconds", "type": "int", "label": "Show for", "default": 4, "min": 1, "max": 30, "suffix": " s"}
-      ]
-    },
-    {
-      "key": "g_common",
-      "type": "group",
-      "label": "Defaults & status",
-      "open": true,
-      "items": [
-        {"key": "status_label", "type": "label", "label": "Status", "default": "not configured"},
-        {"key": "btn_refresh", "type": "action", "label": "Refresh"},
-        {"key": "intensity", "type": "slider", "label": "Intensity", "default": 30, "min": 1, "max": 100},
-        {"key": "duration_ms", "type": "int", "label": "Duration (OpenShock)", "default": 1000, "min": 300, "max": 65535, "suffix": " ms"},
-        {"key": "duration_sec", "type": "int", "label": "Duration (PiShock)", "default": 1, "min": 1, "max": 15, "suffix": " s"}
-      ]
-    },
-    {
-      "key": "g_actions",
-      "type": "group",
-      "label": "Actions",
-      "open": true,
-      "items": [
-        {"key": "btn_vibrate", "type": "action", "label": "Vibrate"},
-        {"key": "btn_shock", "type": "action", "label": "Shock"},
-        {"key": "btn_sound", "type": "action", "label": "Sound / Beep"},
-        {"key": "btn_stop", "type": "action", "label": "Stop (OpenShock)"}
-      ]
-    },
-    {
-      "key": "g_chatbox",
-      "type": "group",
-      "label": "Chatbox line (idle)",
-      "open": true,
-      "items": [
-        {"key": "show_when_offline", "type": "bool", "label": "Show line even when offline", "default": false},
-        {"key": "prefix", "type": "text", "label": "Prefix", "default": "⚡"},
-        {"key": "last_ttl", "type": "int", "label": "Last action stays for", "default": 0, "min": 0, "max": 300, "suffix": " s",
-         "hint": "0 = forever. How long the last shock stays on the normal status line (when not using / after the replace-event)."}
-      ]
-    }
+    {"key": "intro", "type": "label", "label": "Shocker", "text": "OpenShock + PiShock. Set backend, credentials, then Refresh."},
+    {"key": "backend", "type": "choice", "label": "Backend", "default": "openshock", "choices": [{"value": "openshock", "label": "OpenShock (openshock.app)"}, {"value": "pishock", "label": "PiShock (pishock.com)"}]},
+    {"key": "g_openshock", "type": "group", "label": "OpenShock", "open": true, "items": [
+      {"key": "os_token", "type": "text", "label": "API Token", "default": "", "secret": true, "hint": "Open-Shock-Token from openshock.app → Settings → API Tokens"},
+      {"key": "os_base_url", "type": "text", "label": "API Base URL", "default": "https://api.openshock.app", "hint": "Self-host only. No trailing slash."},
+      {"key": "os_user_agent", "type": "text", "label": "User-Agent", "default": "OSC-DreamChatbox-Shocker/2.2"},
+      {"key": "os_shocker_id", "type": "text", "label": "Shocker ID (UUID)", "default": ""},
+      {"key": "os_watch_logs", "type": "bool", "label": "Watch live logs (show who)", "default": true, "hint": "Poll logs so website / other apps show up with the username."},
+      {"key": "os_poll_secs", "type": "int", "label": "Log poll interval", "default": 6, "min": 3, "max": 60, "suffix": " s"}
+    ]},
+    {"key": "g_pishock", "type": "group", "label": "PiShock", "open": false, "items": [
+      {"key": "ps_username", "type": "text", "label": "Username", "default": ""},
+      {"key": "ps_apikey", "type": "text", "label": "API Key", "default": "", "secret": true},
+      {"key": "ps_sharecode", "type": "text", "label": "Share Code", "default": ""},
+      {"key": "ps_log_name", "type": "text", "label": "Log name", "default": "OSC-DreamChatbox"}
+    ]},
+    {"key": "g_event", "type": "group", "label": "Live event (replace chatbox)", "open": true, "items": [
+      {"key": "event_enabled", "type": "bool", "label": "Replace chatbox on action", "default": true},
+      {"key": "event_template", "type": "text", "label": "Event template", "default": "⚡ {shocker_type} {shocker_intensity}% {shocker_duration} by {shocker_by}"},
+      {"key": "event_seconds", "type": "int", "label": "Show for", "default": 4, "min": 1, "max": 30, "suffix": " s"}
+    ]},
+    {"key": "g_common", "type": "group", "label": "Defaults & status", "open": true, "items": [
+      {"key": "status_label", "type": "label", "label": "Status", "default": "not configured"},
+      {"key": "btn_refresh", "type": "action", "label": "Refresh"},
+      {"key": "intensity", "type": "slider", "label": "Intensity", "default": 30, "min": 1, "max": 100},
+      {"key": "duration_ms", "type": "int", "label": "Duration (OpenShock)", "default": 1000, "min": 300, "max": 65535, "suffix": " ms"},
+      {"key": "duration_sec", "type": "int", "label": "Duration (PiShock)", "default": 1, "min": 1, "max": 15, "suffix": " s"}
+    ]},
+    {"key": "g_actions", "type": "group", "label": "Actions", "open": true, "items": [
+      {"key": "btn_vibrate", "type": "action", "label": "Vibrate"},
+      {"key": "btn_shock", "type": "action", "label": "Shock"},
+      {"key": "btn_sound", "type": "action", "label": "Sound / Beep"},
+      {"key": "btn_stop", "type": "action", "label": "Stop (OpenShock)"}
+    ]},
+    {"key": "g_chatbox", "type": "group", "label": "Chatbox line (idle)", "open": true, "items": [
+      {"key": "show_when_offline", "type": "bool", "label": "Show line even when offline", "default": false},
+      {"key": "prefix", "type": "text", "label": "Prefix", "default": "⚡"},
+      {"key": "last_ttl", "type": "int", "label": "Last action stays for", "default": 0, "min": 0, "max": 300, "suffix": " s", "hint": "0 = forever. How long the last shock stays on the normal status line (when not using / after the replace-event)."}
+    ]}
   ]
 }
