@@ -493,12 +493,12 @@ def _poll_loop() -> None:
                 _os_poll_logs_once()
         except Exception as e:
             _log(f"poll loop: {e}")
-        interval = 2
+        interval = 5
         if _api is not None:
             try:
-                interval = max(1, min(60, int(_api.get("os_poll_secs") or 2)))
+                interval = max(1, min(60, int(_api.get("os_poll_secs") or 5)))
             except Exception:
-                interval = 2
+                interval = 5
         with _lock:
             until = float(_state.get("event_until") or 0)
         if until and time.time() >= until:
