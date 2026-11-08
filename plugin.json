@@ -2,7 +2,8 @@
   "name": "Shocker (OpenShock + PiShock)",
   "id": "shocker",
   "version": "2.2.2",
-  "author": "community",
+  "author": "ArcticTechy",
+  "image": "logo.png",
   "description": "Control OpenShock and PiShock from OSC-DreamChatbox. Live who on OpenShock. Optional event that temporarily replaces the whole chatbox when a shock happens. Duration shown as 0.3 s. Idle last-action timeout.",
   "about": {
     "format": "markdown",
@@ -192,7 +193,7 @@
           "key": "event_template",
           "type": "text",
           "label": "Event template",
-          "default": "⚡ {shocker_type} {shocker_intensity}% {shocker_duration} by {shocker_by}",
+          "default": "⚡ '{shocker_device}' {shocker_intensity}%:{shocker_duration} by {shocker_by}",
           "hint": "Shown instead of the normal chatbox for a few seconds. Placeholders work."
         },
         {

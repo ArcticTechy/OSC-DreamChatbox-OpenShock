@@ -184,7 +184,7 @@ def _record_action(typ: str, intensity, duration_text: str, by: str = "you", fir
 def _render_event_template() -> str:
     if _api is None:
         return _state.get("last") or ""
-    tmpl = str(_api.get("event_template") or "⚡ {shocker_type} {shocker_intensity}% by {shocker_by}")
+    tmpl = str(_api.get("event_template") or "⚡ '{shocker_device}' {shocker_intensity}%:{shocker_duration} by {shocker_by}")
     vals = get_values()
     repl = {
         "shocker": get_text_idle(),
@@ -365,7 +365,7 @@ def _os_send(control_type: str, intensity: int, duration_ms: int) -> None:
             "duration": 300 if control_type == "Stop" else duration_ms,
             "exclusive": False,
         }],
-        "customName": "OSC-DreamChatbox",
+        "customName": "ArcticTechy",
     }
     try:
         code, _ = _http_json("POST", f"{_os_base()}/2/shockers/control", _os_headers(), body=body)
@@ -374,7 +374,7 @@ def _os_send(control_type: str, intensity: int, duration_ms: int) -> None:
         if _state["status"].startswith("Error") or _state["status"] == "not configured":
             with _lock:
                 _state["status"] = "OpenShock · Connected"
-        _record_action(control_type, inten, dur, by="you", fire_event=True)
+        _record_action(control_type, inten, dur, by="ArcticTechy", fire_event=True)
         if _api and _api.supports("api.set"):
             try:
                 _api.set("status_label", f"OK · {_state['last']}")
@@ -440,10 +440,10 @@ def _os_poll_logs_once() -> None:
 
         with _lock:
             recent_self = (
-                _state.get("by") == "you"
+                _state.get("by") in ("you", "ArcticTechy")
                 and (time.time() - float(_state.get("last_ok_at") or 0)) < 2.5
             )
-        if recent_self and who in ("you", "OSC-DreamChatbox"):
+        if recent_self and who in ("you", "ArcticTechy", "OSC-DreamChatbox"):
             return
 
         try:
@@ -587,7 +587,7 @@ def _ps_send(op: int, intensity: int, duration_sec: int) -> None:
         dur = f"{duration_sec} s"
         with _lock:
             _state["status"] = "PiShock · Connected"
-        _record_action(typ, inten, dur, by="you", fire_event=True)
+        _record_action(typ, inten, dur, by="ArcticTechy", fire_event=True)
         if _api and _api.supports("api.set"):
             try:
                 _api.set("status_label", f"OK · {_state['last']}")
