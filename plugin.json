@@ -1,7 +1,7 @@
 {
   "name": "Shocker (OpenShock + PiShock)",
   "id": "shocker",
-  "version": "2.2.0",
+  "version": "2.2.2",
   "author": "community",
   "description": "Control OpenShock and PiShock from OSC-DreamChatbox. Live who on OpenShock. Optional event that temporarily replaces the whole chatbox when a shock happens. Duration shown as 0.3 s. Idle last-action timeout.",
   "about": {
@@ -235,6 +235,16 @@
           "suffix": " %"
         },
         {
+          "key": "max_intensity",
+          "type": "int",
+          "label": "Max intensity",
+          "default": 100,
+          "min": 1,
+          "max": 100,
+          "suffix": " %",
+          "hint": "Hard cap. Buttons and live commands will never go above this."
+        },
+        {
           "key": "duration_ms",
           "type": "int",
           "label": "Duration (OpenShock)",
@@ -315,6 +325,16 @@
           "max": 300,
           "suffix": " s",
           "hint": "0 = forever. How long the last shock stays on the normal status line (when not using / after the replace-event)."
+        },
+        {
+          "key": "max_name_len",
+          "type": "int",
+          "label": "Max name length",
+          "default": 24,
+          "min": 3,
+          "max": 64,
+          "suffix": " chars",
+          "hint": "Live-log usernames longer than this are truncated before they enter the chatbox."
         }
       ],
       "expanded": false

@@ -102,7 +102,37 @@ def _refresh() -> None:
             pass
 
 
-def _fmt_duration_ms(ms: int) -> str:
+def _max_intensity() -> int:
+    if _api is None:
+        return 100
+    try:
+        return max(1, min(100, int(_api.get("max_intensity") or 100)))
+    except Exception:
+        return 100
+
+
+def _max_name_len() -> int:
+    if _api is None:
+        return 24
+    try:
+        return max(3, min(64, int(_api.get("max_name_len") or 24)))
+    except Exception:
+        return 24
+
+
+def _clamp_name(name: str) -> str:
+    """Limit length and strip control characters from a live-log username."""
+    if not name:
+        return "someone"
+    # keep printable, collapse whitespace
+    cleaned = "".join(ch for ch in str(name) if ch.isprintable())
+    cleaned = " ".join(cleaned.split()).strip()
+    if not cleaned:
+        return "someone"
+    limit = _max_name_len()
+    if len(cleaned) > limit:
+        cleaned = cleaned[:limit].rstrip() + "…"
+    return cleaned
     """Format ms as e.g. 0.3 s, 1 s, 1.5 s (always space before s)."""
     try:
         ms = int(ms)
@@ -320,8 +350,8 @@ def _os_send(control_type: str, intensity: int, duration_ms: int) -> None:
         _set_status("Error", "no shocker selected")
         return
 
-    intensity = max(0, min(100, int(intensity)))
-    duration_ms = max(300, min(65535, int(duration_ms)))
+    intensity = max(0, min(_max_intensity(), int(intensity)))
+    duration_ms = max(300, min(30000, int(duration_ms)))
     body = {
         "shocks": [{
             "id": sid or "00000000-0000-0000-0000-000000000000",
@@ -401,6 +431,7 @@ def _os_poll_logs_once() -> None:
         name = controlled.get("name") or controlled.get("Name") or "Guest"
         custom = controlled.get("customName") or controlled.get("CustomName")
         who = str(custom).strip() if custom else (str(name).strip() or "someone")
+        who = _clamp_name(who)
 
         with _lock:
             recent_self = (
@@ -412,6 +443,8 @@ def _os_poll_logs_once() -> None:
 
         try:
             inten = int(intensity) if intensity is not None and typ not in ("Stop", "Sound") else None
+            if inten is not None:
+                inten = max(0, min(_max_intensity(), inten))
         except Exception:
             inten = None
         try:
@@ -531,7 +564,7 @@ def _ps_send(op: int, intensity: int, duration_sec: int) -> None:
     if not user or not key or not code:
         _set_status("Error", "PiShock not configured")
         return
-    intensity = max(1, min(100, int(intensity)))
+    intensity = max(1, min(_max_intensity(), int(intensity)))
     duration_sec = max(1, min(15, int(duration_sec)))
     body = {
         "Username": user, "Name": _ps_log_name(), "Code": code,
@@ -711,6 +744,8 @@ def on_action(key: str) -> str:
             duration_sec = int(_api.get("duration_sec") or 1)
         except Exception:
             pass
+    intensity = max(1, min(_max_intensity(), int(intensity)))
+    duration_ms = max(300, min(30000, int(duration_ms)))
 
     if be == "pishock":
         mapping = {"btn_vibrate": 1, "btn_shock": 0, "btn_sound": 2}
