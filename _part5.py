@@ -1,0 +1,19 @@
+PARTS = [
+    'nIHVqjgsFBgg5f+aZjce4ra8a1qCH7AWMmCRBTRmW4AxK7cV5CvWbuR9XajM',
+    'gxxuxZzVVET6EPsgvlYEP6gKUOKY3DsdwgErTZZf5CvvdDMbgGWRp6oMyeuJ',
+    '2y48P72Emc1n8Qu76IbzmmOIcyBxyGqWRqPvOUTHdZNnGmr73PYQn1ylxKqT',
+    'etawcAfhSJknOSWey8Ed1IiwbrZ2S0K9b+EnzYXC1QBT+cv/W85IlzeCZWqu',
+    'EwJy9Vd1Qd7iRZ9f3gnB+0STrklO+R0esOJWoBHuOBPKLi92rkkuCznIKm9u',
+    'mMQZxrjq8FgdGVC/RTWZuwAoUE6Jv6ua3Pq21k5OvRsc5/cJpvLQ5G7q3drB',
+    'Gy/DVmUtMtDiuXTuS4cDjAsIQiCRNfG5OinvEvRWvvHkt/XmS6e4MlAUHNNV',
+    'G27Rhl4RlrvJPf9NdHbtfCveXZqAil6wMqNX/Q2jghxIOpydVd9NZUN/NdTo',
+    'P7+kpj1H01FYGAQ9epvyQl3P7P5t03Sp6wtVPbDvX8AZMOkzmsJ23g0M1qdF',
+    'qP16dLbF75NMnq3IX1MO1RJnt/XFbV7MQSB4l6b4iD3zC+tZI+qXJKcar1b/',
+    'n6G5yNOkVCuw4E877wsYXXf0sgD2CnzA7v0BxILaXUIwJElXNhU1O1nTQQ5H',
+    'j5IG1r13QQOMgaef0oeeE8jO54Cv1kkpr6z0m6Hpf84k6LK1kOlofZBnWx5F',
+    'S8+gsPINU8tI92EbXO/SMls9uEKAnBsKoO1Q35my2T+0eDV0ScuXi4MQC/wO',
+    'vfVX7Ni7GEXdcybFUAmNxlC8/PBGIklzC8mntp2nkyhUD6Ry03KNwUspQxMJ',
+    'CPzBpUyBYDwrUDkDm6ktmQKJelsAzM5YqNxBU5G1LOJdJsuxFsUGC7Qufkhr',
+    'VXfyZrsqnAzNY4+C',
+]
+PART = "".join(PARTS)
