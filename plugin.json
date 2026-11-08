@@ -330,7 +330,7 @@
           "key": "max_name_len",
           "type": "int",
           "label": "Max name length",
-          "default": 24,
+          "default": 20,
           "min": 3,
           "max": 64,
           "suffix": " chars",

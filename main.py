@@ -113,19 +113,22 @@ def _max_intensity() -> int:
 
 def _max_name_len() -> int:
     if _api is None:
-        return 24
+        return 20
     try:
-        return max(3, min(64, int(_api.get("max_name_len") or 24)))
+        return max(3, min(64, int(_api.get("max_name_len") or 20)))
     except Exception:
-        return 24
+        return 20
 
 
 def _clamp_name(name: str) -> str:
-    """Limit length and strip control characters from a live-log username."""
+    """Limit length and strip line breaks / control characters from a live-log username."""
     if not name:
         return "someone"
-    # keep printable, collapse whitespace
-    cleaned = "".join(ch for ch in str(name) if ch.isprintable())
+    # drop newlines, tabs, and other control / non-printable characters
+    cleaned = "".join(
+        ch for ch in str(name)
+        if ch.isprintable() and ch not in "\r\n\t\v\f\x00"
+    )
     cleaned = " ".join(cleaned.split()).strip()
     if not cleaned:
         return "someone"
@@ -133,7 +136,9 @@ def _clamp_name(name: str) -> str:
     if len(cleaned) > limit:
         cleaned = cleaned[:limit].rstrip() + "…"
     return cleaned
-    """Format ms as e.g. 0.3 s, 1 s, 1.5 s (always space before s)."""
+
+
+def _fmt_duration_ms(ms: int) -> str:
     try:
         ms = int(ms)
     except Exception:
