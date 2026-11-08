@@ -136,8 +136,8 @@
           "key": "os_poll_secs",
           "type": "int",
           "label": "Log poll interval",
-          "default": 6,
-          "min": 3,
+          "default": 2,
+          "min": 1,
           "max": 60,
           "suffix": " s"
         }

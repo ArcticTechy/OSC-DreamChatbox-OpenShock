@@ -20,7 +20,7 @@ If you had v1/v2 under the old `openshock` id, remove that folder and install th
 ## Placeholders
 
 | Placeholder | Meaning |
-|-------------|---------| 
+|-------------|---------|
 | `{shocker}` | Idle status line, **or** the event line while an event is active |
 | `{shocker_status}` | Connected / Offline / Error |
 | `{shocker_last}` | Last command (includes `by Name` when live) |

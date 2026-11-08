@@ -367,14 +367,18 @@ def _os_send(control_type: str, intensity: int, duration_ms: int) -> None:
         }],
         "customName": "ArcticTechy",
     }
+    # Optimistic chatbox update so the overlay appears immediately
+    dur = "" if control_type == "Stop" else _fmt_duration_ms(duration_ms)
+    inten = None if control_type in ("Stop", "Sound") else intensity
+    _record_action(control_type, inten, dur, by="ArcticTechy", fire_event=True)
     try:
-        code, _ = _http_json("POST", f"{_os_base()}/2/shockers/control", _os_headers(), body=body)
-        dur = "" if control_type == "Stop" else _fmt_duration_ms(duration_ms)
-        inten = None if control_type in ("Stop", "Sound") else intensity
+        code, _ = _http_json(
+            "POST", f"{_os_base()}/2/shockers/control", _os_headers(),
+            body=body, timeout=5.0,
+        )
         if _state["status"].startswith("Error") or _state["status"] == "not configured":
             with _lock:
                 _state["status"] = "OpenShock · Connected"
-        _record_action(control_type, inten, dur, by="ArcticTechy", fire_event=True)
         if _api and _api.supports("api.set"):
             try:
                 _api.set("status_label", f"OK · {_state['last']}")
@@ -384,6 +388,11 @@ def _os_send(control_type: str, intensity: int, duration_ms: int) -> None:
     except Exception as e:
         _set_status("Error", str(e))
         _log(f"OpenShock control failed: {e}")
+        # Clear the optimistic event on failure
+        with _lock:
+            _state["event_line"] = ""
+            _state["event_until"] = 0.0
+        _refresh()
 
 
 def _os_type_name(t: Any) -> str:
@@ -405,7 +414,7 @@ def _os_poll_logs_once() -> None:
             if sid else
             f"{_os_base()}/1/shockers/logs?page=1&pageSize=5"
         )
-        code, data = _http_json("GET", url, _os_headers(), timeout=10.0)
+        code, data = _http_json("GET", url, _os_headers(), timeout=6.0)
         entries = []
         if isinstance(data, dict):
             raw = data.get("data")
@@ -484,12 +493,12 @@ def _poll_loop() -> None:
                 _os_poll_logs_once()
         except Exception as e:
             _log(f"poll loop: {e}")
-        interval = 6
+        interval = 2
         if _api is not None:
             try:
-                interval = max(3, min(60, int(_api.get("os_poll_secs") or 6)))
+                interval = max(1, min(60, int(_api.get("os_poll_secs") or 2)))
             except Exception:
-                interval = 6
+                interval = 2
         with _lock:
             until = float(_state.get("event_until") or 0)
         if until and time.time() >= until:
@@ -576,18 +585,20 @@ def _ps_send(op: int, intensity: int, duration_sec: int) -> None:
         "Intensity": str(intensity), "Duration": str(duration_sec),
         "Apikey": key, "Op": str(op),
     }
+    names = {0: "Shock", 1: "Vibrate", 2: "Beep"}
+    typ = names.get(op, str(op))
+    inten = None if op == 2 else intensity
+    dur = f"{duration_sec} s"
+    # Optimistic update so chatbox reacts immediately
+    _record_action(typ, inten, dur, by="ArcticTechy", fire_event=True)
     try:
         status, data = _http_json(
             "POST", "https://do.pishock.com/api/apioperate",
             {"Content-Type": "application/json", "User-Agent": _OS_UA}, body=body,
+            timeout=5.0,
         )
-        names = {0: "Shock", 1: "Vibrate", 2: "Beep"}
-        typ = names.get(op, str(op))
-        inten = None if op == 2 else intensity
-        dur = f"{duration_sec} s"
         with _lock:
             _state["status"] = "PiShock · Connected"
-        _record_action(typ, inten, dur, by="ArcticTechy", fire_event=True)
         if _api and _api.supports("api.set"):
             try:
                 _api.set("status_label", f"OK · {_state['last']}")
@@ -597,6 +608,10 @@ def _ps_send(op: int, intensity: int, duration_sec: int) -> None:
     except Exception as e:
         _set_status("Error", str(e))
         _log(f"PiShock control failed: {e}")
+        with _lock:
+            _state["event_line"] = ""
+            _state["event_until"] = 0.0
+        _refresh()
 
 
 
