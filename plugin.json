@@ -1,41 +1,41 @@
 {
-  "name": "OpenShock",
+  "name": "Shocker (OpenShock + PiShock)",
   "id": "openshock",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "author": "community",
-  "description": "Control OpenShock devices (openshock.app) from OSC-DreamChatbox. Status + last action in the chatbox, Shock / Vibrate / Sound / Stop buttons in settings.",
+  "description": "Control OpenShock and PiShock devices from OSC-DreamChatbox. Status + last action in the chatbox. OpenShock can also show live actions triggered by others (who + type + intensity + duration).",
   "about": {
     "format": "markdown",
     "text": [
-      "## OpenShock plugin for OSC-DreamChatbox",
+      "## Shocker plugin (OpenShock + PiShock)",
       "",
-      "Talks to the official OpenShock API (`api.openshock.app` by default).",
+      "One plugin, two backends. Switch with the **Backend** setting.",
       "",
-      "### Setup",
+      "### OpenShock",
       "1. Create an API token on [openshock.app](https://openshock.app) → Settings → API Tokens.",
-      "2. Paste the token into **API Token** (it is stored as a secret).",
-      "3. Optionally set a **Shocker ID** (UUID). Leave empty and press **Refresh shockers** to pick one.",
-      "4. Use the action buttons or put `{openshock}` / `{openshock_status}` etc. in any status / AIO string.",
+      "2. Paste it into **OpenShock API Token**.",
+      "3. Press **Refresh**. Pick a shocker (or paste a UUID).",
+      "4. Optional: enable **Watch live logs** to show actions done on the website / by others.",
+      "",
+      "### PiShock",
+      "1. Username + API key from [pishock.com/#/account](https://pishock.com/#/account).",
+      "2. Share code from the control page (Share button).",
+      "3. Use the action buttons.",
       "",
       "### Placeholders",
       "- `{openshock}` – short status line",
       "- `{openshock_status}` – Connected / Offline / Error",
-      "- `{openshock_last}` – last command that was sent",
-      "- `{openshock_intensity}` – last intensity used",
-      "- `{openshock_shocker}` – currently selected shocker name or ID",
+      "- `{openshock_last}` – last command (includes *by Name* when live)",
+      "- `{openshock_intensity}` – last intensity",
+      "- `{openshock_shocker}` – selected shocker",
+      "- `{openshock_by}` – who triggered the last seen action (OpenShock live)",
       "",
       "### Safety",
-      "All network work runs off the GUI thread. A broken token or offline hub never crashes the chatbox."
+      "All network work runs off the GUI thread."
     ]
   },
-  "short_description": "OpenShock control + status for the chatbox",
-  "tags": [
-    "openshock",
-    "shock",
-    "estim",
-    "control",
-    "hardware"
-  ],
+  "short_description": "OpenShock + PiShock control and status (live who on OpenShock)",
+  "tags": ["openshock", "pishock", "shock", "estim", "control", "hardware"],
   "Github": "https://github.com/ArcticTechy/OSC-DreamChatbox-OpenShock",
   "main": "main.py",
   "enabled": false,
@@ -44,55 +44,132 @@
   "is_linux": true,
   "is_windows": true,
   "template": "{openshock}",
-  "layout": [
-    "settings",
-    "chatbox"
-  ],
+  "layout": ["settings", "chatbox"],
   "chatbox": {
     "enabled": true,
     "user_editable": true
   },
   "placeholders": {
-    "status": "connection state (Connected / Offline / …)",
-    "last": "last control command that was sent",
+    "status": "connection state",
+    "last": "last control command",
     "intensity": "intensity of the last command",
-    "shocker": "selected shocker name or short ID"
+    "shocker": "selected shocker name or short ID",
+    "by": "who triggered the last action (OpenShock live)"
   },
   "settings": [
     {
       "key": "intro",
       "type": "label",
-      "label": "OpenShock",
-      "default": "API token from openshock.app → Settings → API Tokens. Network calls never block the UI."
+      "label": "Shocker",
+      "default": "Pick a backend below. Network calls never block the UI."
     },
     {
-      "key": "g_connection",
+      "key": "backend",
+      "type": "choice",
+      "label": "Backend",
+      "default": "openshock",
+      "choices": [
+        {"value": "openshock", "label": "OpenShock (openshock.app)"},
+        {"value": "pishock", "label": "PiShock (pishock.com)"}
+      ]
+    },
+    {
+      "key": "g_openshock",
       "type": "group",
-      "label": "Connection",
+      "label": "OpenShock",
       "open": true,
       "items": [
         {
-          "key": "api_token",
+          "key": "os_token",
           "type": "text",
           "label": "API Token",
           "default": "",
           "secret": true,
-          "hint": "Open-Shock-Token header value. Create one on openshock.app."
+          "hint": "Open-Shock-Token from openshock.app → Settings → API Tokens"
         },
         {
-          "key": "base_url",
+          "key": "os_base_url",
           "type": "text",
           "label": "API Base URL",
           "default": "https://api.openshock.app",
           "hint": "Change only if you self-host. No trailing slash."
         },
         {
-          "key": "user_agent",
+          "key": "os_user_agent",
           "type": "text",
           "label": "User-Agent",
-          "default": "OSC-DreamChatbox-OpenShock/1.0",
+          "default": "OSC-DreamChatbox-Shocker/2.0",
           "hint": "OpenShock requires a non-empty User-Agent."
         },
+        {
+          "key": "os_shocker_id",
+          "type": "text",
+          "label": "Shocker ID (UUID)",
+          "default": "",
+          "hint": "Paste a UUID or pick one after Refresh."
+        },
+        {
+          "key": "os_watch_logs",
+          "type": "bool",
+          "label": "Watch live logs (show who)",
+          "default": true,
+          "hint": "Poll OpenShock logs so website / other apps actions appear in the chatbox with the username."
+        },
+        {
+          "key": "os_poll_secs",
+          "type": "int",
+          "label": "Log poll interval",
+          "default": 6,
+          "min": 3,
+          "max": 60,
+          "suffix": " s",
+          "hint": "How often to check for new remote actions when watching logs."
+        }
+      ]
+    },
+    {
+      "key": "g_pishock",
+      "type": "group",
+      "label": "PiShock",
+      "open": false,
+      "items": [
+        {
+          "key": "ps_username",
+          "type": "text",
+          "label": "Username",
+          "default": "",
+          "hint": "Your pishock.com username"
+        },
+        {
+          "key": "ps_apikey",
+          "type": "text",
+          "label": "API Key",
+          "default": "",
+          "secret": true,
+          "hint": "From pishock.com → Account"
+        },
+        {
+          "key": "ps_sharecode",
+          "type": "text",
+          "label": "Share Code",
+          "default": "",
+          "hint": "From the control page → Share button"
+        },
+        {
+          "key": "ps_log_name",
+          "type": "text",
+          "label": "Log name",
+          "default": "OSC-DreamChatbox",
+          "hint": "Shown in PiShock website logs as the source of the command"
+        }
+      ]
+    },
+    {
+      "key": "g_common",
+      "type": "group",
+      "label": "Defaults & status",
+      "open": true,
+      "items": [
         {
           "key": "status_label",
           "type": "label",
@@ -102,47 +179,11 @@
         {
           "key": "btn_refresh",
           "type": "action",
-          "label": "Refresh shockers",
+          "label": "Refresh",
           "button": "Refresh",
           "style": "accent",
-          "hint": "Fetches your shockers and updates the dropdown."
-        }
-      ]
-    },
-    {
-      "key": "g_shocker",
-      "type": "group",
-      "label": "Shocker",
-      "open": true,
-      "items": [
-        {
-          "key": "shocker_id",
-          "type": "text",
-          "label": "Shocker ID (UUID)",
-          "default": "",
-          "hint": "Paste a UUID or pick one after pressing Refresh."
+          "hint": "OpenShock: fetch shockers. PiShock: verify credentials."
         },
-        {
-          "key": "shocker_choice",
-          "type": "choice",
-          "label": "Pick shocker",
-          "default": "",
-          "choices": [
-            {
-              "value": "",
-              "label": "(none – press Refresh)"
-            }
-          ],
-          "hint": "Populated by the Refresh button. Selecting one writes the ID above."
-        }
-      ]
-    },
-    {
-      "key": "g_defaults",
-      "type": "group",
-      "label": "Default intensity & duration",
-      "open": true,
-      "items": [
         {
           "key": "intensity",
           "type": "slider",
@@ -155,11 +196,22 @@
         {
           "key": "duration_ms",
           "type": "int",
-          "label": "Duration",
+          "label": "Duration (OpenShock)",
           "default": 1000,
           "min": 300,
           "max": 30000,
-          "suffix": " ms"
+          "suffix": " ms",
+          "hint": "Used for OpenShock. PiShock uses seconds below."
+        },
+        {
+          "key": "duration_sec",
+          "type": "int",
+          "label": "Duration (PiShock)",
+          "default": 1,
+          "min": 1,
+          "max": 15,
+          "suffix": " s",
+          "hint": "PiShock API uses whole seconds 1–15."
         }
       ]
     },
@@ -192,8 +244,9 @@
         {
           "key": "btn_stop",
           "type": "action",
-          "label": "Stop",
-          "button": "Stop"
+          "label": "Stop (OpenShock)",
+          "button": "Stop",
+          "hint": "OpenShock only. PiShock has no stop via the classic HTTP API."
         }
       ]
     },
