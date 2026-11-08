@@ -1,0 +1,222 @@
+{
+  "name": "OpenShock",
+  "id": "openshock",
+  "version": "1.0.0",
+  "author": "community",
+  "description": "Control OpenShock devices (openshock.app) from OSC-DreamChatbox. Status + last action in the chatbox, Shock / Vibrate / Sound / Stop buttons in settings.",
+  "about": {
+    "format": "markdown",
+    "text": [
+      "## OpenShock plugin for OSC-DreamChatbox",
+      "",
+      "Talks to the official OpenShock API (`api.openshock.app` by default).",
+      "",
+      "### Setup",
+      "1. Create an API token on [openshock.app](https://openshock.app) → Settings → API Tokens.",
+      "2. Paste the token into **API Token** (it is stored as a secret).",
+      "3. Optionally set a **Shocker ID** (UUID). Leave empty and press **Refresh shockers** to pick one.",
+      "4. Use the action buttons or put `{openshock}` / `{openshock_status}` etc. in any status / AIO string.",
+      "",
+      "### Placeholders",
+      "- `{openshock}` – short status line",
+      "- `{openshock_status}` – Connected / Offline / Error",
+      "- `{openshock_last}` – last command that was sent",
+      "- `{openshock_intensity}` – last intensity used",
+      "- `{openshock_shocker}` – currently selected shocker name or ID",
+      "",
+      "### Safety",
+      "All network work runs off the GUI thread. A broken token or offline hub never crashes the chatbox."
+    ]
+  },
+  "short_description": "OpenShock control + status for the chatbox",
+  "tags": [
+    "openshock",
+    "shock",
+    "estim",
+    "control",
+    "hardware"
+  ],
+  "Github": "https://github.com/ArcticTechy/OSC-DreamChatbox-OpenShock",
+  "main": "main.py",
+  "enabled": false,
+  "api": 2,
+  "min_app": "v1.3.2",
+  "is_linux": true,
+  "is_windows": true,
+  "template": "{openshock}",
+  "layout": [
+    "settings",
+    "chatbox"
+  ],
+  "chatbox": {
+    "enabled": true,
+    "user_editable": true
+  },
+  "placeholders": {
+    "status": "connection state (Connected / Offline / …)",
+    "last": "last control command that was sent",
+    "intensity": "intensity of the last command",
+    "shocker": "selected shocker name or short ID"
+  },
+  "settings": [
+    {
+      "key": "intro",
+      "type": "label",
+      "label": "OpenShock",
+      "default": "API token from openshock.app → Settings → API Tokens. Network calls never block the UI."
+    },
+    {
+      "key": "g_connection",
+      "type": "group",
+      "label": "Connection",
+      "open": true,
+      "items": [
+        {
+          "key": "api_token",
+          "type": "text",
+          "label": "API Token",
+          "default": "",
+          "secret": true,
+          "hint": "Open-Shock-Token header value. Create one on openshock.app."
+        },
+        {
+          "key": "base_url",
+          "type": "text",
+          "label": "API Base URL",
+          "default": "https://api.openshock.app",
+          "hint": "Change only if you self-host. No trailing slash."
+        },
+        {
+          "key": "user_agent",
+          "type": "text",
+          "label": "User-Agent",
+          "default": "OSC-DreamChatbox-OpenShock/1.0",
+          "hint": "OpenShock requires a non-empty User-Agent."
+        },
+        {
+          "key": "status_label",
+          "type": "label",
+          "label": "Status",
+          "default": "not configured"
+        },
+        {
+          "key": "btn_refresh",
+          "type": "action",
+          "label": "Refresh shockers",
+          "button": "Refresh",
+          "style": "accent",
+          "hint": "Fetches your shockers and updates the dropdown."
+        }
+      ]
+    },
+    {
+      "key": "g_shocker",
+      "type": "group",
+      "label": "Shocker",
+      "open": true,
+      "items": [
+        {
+          "key": "shocker_id",
+          "type": "text",
+          "label": "Shocker ID (UUID)",
+          "default": "",
+          "hint": "Paste a UUID or pick one after pressing Refresh."
+        },
+        {
+          "key": "shocker_choice",
+          "type": "choice",
+          "label": "Pick shocker",
+          "default": "",
+          "choices": [
+            {
+              "value": "",
+              "label": "(none – press Refresh)"
+            }
+          ],
+          "hint": "Populated by the Refresh button. Selecting one writes the ID above."
+        }
+      ]
+    },
+    {
+      "key": "g_defaults",
+      "type": "group",
+      "label": "Default intensity & duration",
+      "open": true,
+      "items": [
+        {
+          "key": "intensity",
+          "type": "slider",
+          "label": "Intensity",
+          "default": 30,
+          "min": 1,
+          "max": 100,
+          "suffix": " %"
+        },
+        {
+          "key": "duration_ms",
+          "type": "int",
+          "label": "Duration",
+          "default": 1000,
+          "min": 300,
+          "max": 30000,
+          "suffix": " ms"
+        }
+      ]
+    },
+    {
+      "key": "g_actions",
+      "type": "group",
+      "label": "Actions",
+      "open": true,
+      "items": [
+        {
+          "key": "btn_vibrate",
+          "type": "action",
+          "label": "Vibrate",
+          "button": "Vibrate",
+          "style": "accent"
+        },
+        {
+          "key": "btn_shock",
+          "type": "action",
+          "label": "Shock",
+          "button": "Shock",
+          "style": "danger"
+        },
+        {
+          "key": "btn_sound",
+          "type": "action",
+          "label": "Sound / Beep",
+          "button": "Sound"
+        },
+        {
+          "key": "btn_stop",
+          "type": "action",
+          "label": "Stop",
+          "button": "Stop"
+        }
+      ]
+    },
+    {
+      "key": "g_chatbox",
+      "type": "group",
+      "label": "Chatbox line",
+      "open": false,
+      "items": [
+        {
+          "key": "show_when_offline",
+          "type": "bool",
+          "label": "Show line even when offline",
+          "default": false
+        },
+        {
+          "key": "prefix",
+          "type": "text",
+          "label": "Prefix",
+          "default": "⚡",
+          "hint": "Shown in front of the status text."
+        }
+      ]
+    }
+  ]
+}
